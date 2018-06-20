@@ -11,15 +11,15 @@ library(keras)
 #Keras expects images to be arranged in a directory containing one subdirectory per image class, like
 input/
   train/
-    class_0/
-      class_0_0.jpg
-      class_0_1.jpg
-      ...
-    class_1/
-      class_1_0.jpg
-      class_1_1.jpg
-      ...
-      ...
+  class_0/
+  class_0_0.jpg
+class_0_1.jpg
+...
+class_1/
+  class_1_0.jpg
+class_1_1.jpg
+...
+...
 #Note that this applies even for non-classification tasks. flow_from_directory would still expect a directory that contains a subdirectory with images when class_mode is None.
 
 #Rename each picture file with their actual animal name 
@@ -48,7 +48,7 @@ for(i in unique(abc$Animal)){
 names <- list.files(path = "/Users/syalamanchi/Downloads/DL_Beginner/train/")
 for(i in names){
   if(endsWith(i,"jpg")){
-      file.copy(paste0("/Users/syalamanchi/Downloads/DL_Beginner/train/",i),paste0("/Users/syalamanchi/Downloads/DL_Beginner/train/",strsplit(i,"-")[[1]][1]))
+    file.copy(paste0("/Users/syalamanchi/Downloads/DL_Beginner/train/",i),paste0("/Users/syalamanchi/Downloads/DL_Beginner/train/",strsplit(i,"-")[[1]][1]))
   }
   
 }
@@ -64,9 +64,9 @@ for(i in names){
 x<-NULL
 for(i in list.dirs()){
   if(i!="."){
-  a <-list.files(path = paste0("/Users/syalamanchi/Downloads/DL_Beginner/train/",str_replace(i,"./","")))
-  x <- list.append(x,length(a))
-}
+    a <-list.files(path = paste0("/Users/syalamanchi/Downloads/DL_Beginner/train/",str_replace(i,"./","")))
+    x <- list.append(x,length(a))
+  }
 }
 cat("Number of images are:",sum(x))
 #first rename all the files in each folder with name of that folder followed by a number starting from 1:n
@@ -91,13 +91,13 @@ for(i in a){
 setwd("/Users/syalamanchi/Downloads/DL_Beginner/train/")
 for(j in list.dirs()){
   if(j!="."){
-  a <- list.files(path = paste0("/Users/syalamanchi/Downloads/DL_Beginner/train/",str_replace(j,"./","")))
-  a <- sample(a)
-  for(i in a[1:round(length(a)*0.2)]){
-    file.copy(paste0("/Users/syalamanchi/Downloads/DL_Beginner/train/",str_replace(j,"./",""),"/",i),paste0("/Users/syalamanchi/Downloads/DL_Beginner/validation/",str_replace(j,"./","")))  
-    file.remove(paste0("/Users/syalamanchi/Downloads/DL_Beginner/train/",str_replace(j,"./",""),"/",i))  
-  }
-  
+    a <- list.files(path = paste0("/Users/syalamanchi/Downloads/DL_Beginner/train/",str_replace(j,"./","")))
+    a <- sample(a)
+    for(i in a[1:round(length(a)*0.2)]){
+      file.copy(paste0("/Users/syalamanchi/Downloads/DL_Beginner/train/",str_replace(j,"./",""),"/",i),paste0("/Users/syalamanchi/Downloads/DL_Beginner/validation/",str_replace(j,"./","")))  
+      file.remove(paste0("/Users/syalamanchi/Downloads/DL_Beginner/train/",str_replace(j,"./",""),"/",i))  
+    }
+    
   }
 }
 
@@ -105,18 +105,18 @@ for(j in list.dirs()){
 
 ####### Instantiating a small convnet ########
 model <- keras_model_sequential()%>%layer_conv_2d(filters = 32,kernel_size = c(3,3),activation = "relu",input_shape = c(150,150,3))%>%
-                                    layer_max_pooling_2d(pool_size = c(2,2))%>%
-                                    layer_conv_2d(filters = 64,kernel_size = c(3,3),activation = "relu")%>%
-                                    layer_max_pooling_2d(pool_size = c(2,2))%>%
-                                    layer_conv_2d(filters = 128,kernel_size = c(3,3),activation = "relu")%>%
-                                    layer_max_pooling_2d(pool_size = c(2,2))%>%
-                                    layer_conv_2d(filters = 128,kernel_size = c(3,3),activation = "relu")%>%
-                                    layer_max_pooling_2d(pool_size = c(2,2))%>%
-                                    layer_flatten() %>%
-                                    layer_dropout(rate = 0.5) %>%
-                                    layer_dense(units = 512,activation = "relu")%>%
-                                    layer_dense(units = 30,activation = "sigmoid")
-  
+  layer_max_pooling_2d(pool_size = c(2,2))%>%
+  layer_conv_2d(filters = 64,kernel_size = c(3,3),activation = "relu")%>%
+  layer_max_pooling_2d(pool_size = c(2,2))%>%
+  layer_conv_2d(filters = 128,kernel_size = c(3,3),activation = "relu")%>%
+  layer_max_pooling_2d(pool_size = c(2,2))%>%
+  layer_conv_2d(filters = 128,kernel_size = c(3,3),activation = "relu")%>%
+  layer_max_pooling_2d(pool_size = c(2,2))%>%
+  layer_flatten() %>%
+  layer_dropout(rate = 0.5) %>%
+  layer_dense(units = 512,activation = "relu")%>%
+  layer_dense(units = 30,activation = "sigmoid")
+
 summary(model)
 model%>%compile(loss = "binary_crossentropy",optimizer = "rmsprop",metrics = c("acc"))
 
@@ -134,9 +134,9 @@ validation_datagen <- image_data_generator(rescale = 1/255)
 
 ###*****Validation data should not be augmented
 train_generator <- flow_images_from_directory("/Users/syalamanchi/Downloads/DL_Beginner/train/",datagen,
-                                                target_size = c(150,150),batch_size = 32,class_mode = "categorical")
-validation_generator <- flow_images_from_directory("/Users/syalamanchi/Downloads/DL_Beginner/validation/",validation_datagen,
                                               target_size = c(150,150),batch_size = 32,class_mode = "categorical")
+validation_generator <- flow_images_from_directory("/Users/syalamanchi/Downloads/DL_Beginner/validation/",validation_datagen,
+                                                   target_size = c(150,150),batch_size = 32,class_mode = "categorical")
 #These generators yields batches of 150x150 RGB images (shape(50,150,150,3)) and labels in a two dimensional array. 
 #There are 50 samples in each batch (the batch size).
 #These generators yeilds these batches indefinitely - it loops endlessly over the images in the target folder.
@@ -213,28 +213,47 @@ datagen <- image_data_generator(rescale = 1/255)
 batch_size <- 20
 extract_features <- function(directory, sample_count){
   features <- array(0,dim = c(sample_count,4,4,512))
-  labels <- array(0,dim = c(sample_count))
+  labels <- array(0,dim = c(sample_count,30))
   generator <- flow_images_from_directory(directory = directory,generator = datagen,target_size = c(150,150),
                                           batch_size = batch_size,class_mode = "categorical")
-i <- 0
-while(TRUE){
-  batch <- generator_next(generator) #generator_next retrieves the next item
-  inputs_batch <- batch[[1]]
-  labels_batch <- batch[[2]]
-  features_batch <- conv_base %>% predict(inputs_batch)#this extracts interesting features from new samples using representations learned by a previous network.These features are then run through a new classifier, which is trained from scratch.
-#Feature Extraction consists of taking the convolutional base of a previously trained network, running the new data through it, and training a new classifier on top of the output.
-  index_range <- ((i*batch_size)+1):((i+1)*batch_size)
-  features[index_range, , , ] <- features_batch
-  labels[index_range] <- labels_batch
-  i<-i+1
-  if(i*batch_size >= sample_count)
-    break  #Because generators yield data indefinitely in a loop, you must break after every image has been seen once.
-}
-list(features=features,labels=labels)
-
+  i <- 0
+  while(TRUE){
+    batch <- generator_next(generator) #generator_next retrieves the next item
+    inputs_batch <- batch[[1]]
+    labels_batch <- batch[[2]]
+    features_batch <- conv_base %>% predict(inputs_batch)#this extracts interesting features from new samples using representations learned by a previous network.These features are then run through a new classifier, which is trained from scratch.
+    #Feature Extraction consists of taking the convolutional base of a previously trained network, running the new data through it, and training a new classifier on top of the output.
+    index_range <- ((i*batch_size)+1):((i+1)*batch_size)
+    features[index_range, , , ] <- features_batch
+    labels[index_range,] <- labels_batch
+    i<-i+1
+    if(i*batch_size >= sample_count)
+      break  #Because generators yield data indefinitely in a loop, you must break after every image has been seen once.
+  }
+  list(features=features,labels=labels)
+  
 }
 
 
 train <- extract_features(train_dir,8000)
 validation <- extract_features(validation_dir,2000)
-test <- extract_features(test_dir,6000)
+#test <- extract_features(test_dir,6000)
+
+#The extracted features are currently of shape (smaples,4,4,512). We will feed them to a densely connected classifier, 
+#so first you must flatten them to (samples,8192):
+reshape_features <- function(features){
+  array_reshape(features,dim = c(nrow(features),4*4*512))
+}
+train$features <- reshape_features(train$features)
+validation$features <- reshape_features(validation$features)
+#test$features <- reshape_features(test$features)
+
+######Defining and training a densely connected classifier######
+model_pretrained <- keras_model_sequential() %>% layer_dense(units = 512, activation = "relu",input_shape = 4*4*512) %>%layer_dropout(rate = 0.5) %>%
+  layer_dense(units = 512, activation = "relu") %>%layer_dropout(rate = 0.5) %>%
+  layer_dense(units = 512, activation = "relu") %>%layer_dropout(rate = 0.5) %>%
+  layer_dense(units = 30,activation = "sigmoid")
+model_pretrained %>% compile(optimizer = "rmsprop",loss = "binary_crossentropy",metrics = c("accuracy"))
+history <- model_pretrained %>% fit(train$features,train$labels,epochs = 30, batch_size = 20,
+                                    validation_data = list(validation$features,validation$labels))
+model_pretrained%>%save_model_hdf5("model_pretrained.h5")
