@@ -1,5 +1,5 @@
 rm(list = ls())
-setwd("/Users/syalamanchi/Downloads/DL_Beginner/train/")
+setwd("/Users/syalamanchi/Desktop/Identify_animal/")
 #devtools::install_github("rstudio/keras")
 #library(keras)
 #install_keras()
@@ -13,13 +13,13 @@ input/
   train/
   class_0/
   class_0_0.jpg
-class_0_1.jpg
-...
+  class_0_1.jpg
+  ...
 class_1/
   class_1_0.jpg
-class_1_1.jpg
-...
-...
+  class_1_1.jpg
+  ...
+  ...
 #Note that this applies even for non-classification tasks. flow_from_directory would still expect a directory that contains a subdirectory with images when class_mode is None.
 
 #Rename each picture file with their actual animal name 
@@ -120,7 +120,7 @@ model <- keras_model_sequential()%>%layer_conv_2d(filters = 32,kernel_size = c(3
 summary(model)
 model%>%compile(loss = "binary_crossentropy",optimizer = "rmsprop",metrics = c("acc"))
 
-#Data should be formatted into appropriatelt preprocessed floating-point tensors before being fed into the network. Currently, the data sits on a drive as JPEG 
+#Data should be formatted into appropriately preprocessed floating-point tensors before being fed into the network. Currently, the data sits on a drive as JPEG 
 #files, so the steps for getting it into the network are as follows:
 #1. Read the picture files
 #2. Decode the JPEG content to RGB grid of pixels.
@@ -181,17 +181,30 @@ par(op)
 
 
 ################################Using a Pretrained Convnet#################################
+#There are two ways to use a pretrained network: feature extraction and fine-tuning
+#Feature extraction consists of using the representations learned by the previous network  to extract interesting features from new samples.
+#The features are then run through the new classifier , which is trained from scratch.
+
+#In case of convnets, feature extraction consists of taking the convolutional base of a previously trained network, running the new data
+#through it, and training a new classifier on top of the output.
+
+#layers that come earlier in the model extract local, highly generic feature maps (such as visual edges, colors and textures), whereas layers
+#that are higher up extract more abstract concepts (such as "cat ear" or "dog eye"). So if the new dataset differs a lot from the dataset
+#on which the original model was trained , you may be better off using only the first few layers of the model to do feature extraction, rather
+#using the entire convolutional base.
+
+#instantiating VGG16 convolutional base
 conv_base <- application_vgg16(weights = "imagenet",include_top = FALSE,input_shape = c(150,150,3))
 #weight specifies the weight checkpoint from which to initialize the model.
 #include_top refers to including the densely connected classifier on top of the network. By default this densely connected classifier 
-#corresponds to the 1,000 classes from ImageNet. because we intend to use your own densely connected classifier 
-#(with 39 different classes), we don't need to include it.
+#corresponds to the 1,000 classes from ImageNet. because we intend to use our own densely connected classifier 
+#(with 30 different classes), we don't need to include it.
 
 #input_shape is the shape of the image tensors that you'll feed to the network. This argument is optional.
 
 conv_base
 
-#the final feature map has shape (4,4,512). That's the feature on top of which we will stick a denssely connected classifier.
+#the final feature map has shape (4,4,512). That's the feature on top of which we will stick a densely connected classifier.
 #1. Fast Feature Extraction with out data Augmentation:Here we will run the Convolutional base over our dataset, recording its output  to an array on the disk,
 #and then using this data as input to a standalone, densely connected classifier. This solution is cheap to run, because it only requires
 #running the convolutional base once for every input image, and the convolutional base is by far the most expensive part of the pipeline
@@ -231,15 +244,15 @@ extract_features <- function(directory, sample_count){
       break  #Because generators yield data indefinitely in a loop, you must break after every image has been seen once.
   }
   list(features=features,labels=labels)
-  
+ 
 }
 
 
-train <- extract_features(train_dir,8000)
-validation <- extract_features(validation_dir,2000)
+train <- extract_features(train_dir,9400)
+validation <- extract_features(validation_dir,2300)
 #test <- extract_features(test_dir,6000)
 
-#The extracted features are currently of shape (smaples,4,4,512). We will feed them to a densely connected classifier, 
+#The extracted features are currently of shape (samples,4,4,512). We will feed them to a densely connected classifier, 
 #so first you must flatten them to (samples,8192):
 reshape_features <- function(features){
   array_reshape(features,dim = c(nrow(features),4*4*512))
@@ -249,7 +262,8 @@ validation$features <- reshape_features(validation$features)
 #test$features <- reshape_features(test$features)
 
 ######Defining and training a densely connected classifier######
-model_pretrained <- keras_model_sequential() %>% layer_dense(units = 512, activation = "relu",input_shape = 4*4*512) %>%layer_dropout(rate = 0.5) %>%
+model_pretrained <- keras_model_sequential() %>% 
+  layer_dense(units = 512, activation = "relu",input_shape = 4*4*512) %>%layer_dropout(rate = 0.5) %>%
   layer_dense(units = 512, activation = "relu") %>%layer_dropout(rate = 0.5) %>%
   layer_dense(units = 512, activation = "relu") %>%layer_dropout(rate = 0.5) %>%
   layer_dense(units = 30,activation = "sigmoid")
@@ -257,3 +271,25 @@ model_pretrained %>% compile(optimizer = "rmsprop",loss = "binary_crossentropy",
 history <- model_pretrained %>% fit(train$features,train$labels,epochs = 30, batch_size = 20,
                                     validation_data = list(validation$features,validation$labels))
 model_pretrained%>%save_model_hdf5("model_pretrained.h5")
+#model_pretrained <- load_model_hdf5(filepath = "model_pretrained.h5")
+
+img_path <- "~/Downloads/DL_Beginner/test/Img-10.jpg"
+img <- image_load(img_path,target_size = c(150,150))%>%image_to_array()%>%array_reshape(dim = c(1,150,150,3))%>%imagenet_preprocess_input()
+#img <- img/255
+dim(img)
+#img <- k_expand_dims(img,axis = 0)
+#img1 <- k_stack(img)
+preds <- model_pretrained%>%predict_classes(img)
+preds
+
+
+
+
+
+
+
+#test_datagen <- image_data_generator(rescale = 1/255)
+
+#test_generator <- flow_images_from_directory(directory = "~/Downloads/DL_Beginner/test/",generator = test_datagen,target_size = c(150,150),
+#                                        batch_size = batch_size,class_mode = "categorical")
+#preds <- predict_generator(model_pretrained,test_generator,steps = )
